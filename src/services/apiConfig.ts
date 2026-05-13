@@ -6,22 +6,24 @@ import { Platform } from 'react-native';
  * should import from here so you only update the ngrok URL in ONE place.
  */
 
-// ⚠️ UPDATE THIS when you restart ngrok:
-const NGROK_URL = 'https://humility-emcee-lake.ngrok-free.dev';
+// Production / device backend (Railway). Override at build time with EXPO_PUBLIC_API_URL in eas.json or EAS Secrets.
+const DEFAULT_RELEASE_API_URL = 'https://modifiedcode-production.up.railway.app';
 
 const getApiBaseUrl = () => {
+    const envUrl = process.env.EXPO_PUBLIC_API_URL;
+
     if (__DEV__) {
-        const envUrl = process.env.EXPO_PUBLIC_API_URL;
         if (envUrl) return envUrl;
 
         // Platform.OS === 'web' is the correct check in React Native.
-        // (typeof window !== 'undefined') is ALWAYS true, even on mobile!
         if (Platform.OS === 'web') return 'http://localhost:8000';
 
-        // Physical devices / emulators → use ngrok tunnel
-        return NGROK_URL;
+        // Physical devices / emulators in dev → tunnel or explicit env
+        return DEFAULT_RELEASE_API_URL;
     }
-    return 'https://your-production-api.com';
+
+    // Release APK / store builds: must not use localhost
+    return envUrl ?? DEFAULT_RELEASE_API_URL;
 };
 
 export const API_BASE_URL = getApiBaseUrl();
